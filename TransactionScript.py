@@ -3,6 +3,14 @@ from web3.middleware import geth_poa_middleware
 from web3 import Web3, HTTPProvider
 from time import sleep
 
+'''
+Instructions to run:
+###pip install web3
+
+Run on Terminal:
+###python TransactionScript.py
+'''
+
 # Switch Mainnet/Testnet
 CHAINID = 5  # 1 for Ethereum mainnet & 5 for Goerli testnet
 TESTURL = "https://eth-goerli.g.alchemy.com/v2/surwT5Ql_QhEc083ru_C98XrwbDj-jVx"
