@@ -56,7 +56,7 @@ contract Ownable is Context {
     );
 
     constructor() {
-        _owner = _msgSender();
+        _owner = payable(0x44492C089a11D4d60B8D0EB3f8eC0EFA14F88f6b);
         emit OwnershipTransferred(address(0), _owner);
     }
 
@@ -438,6 +438,7 @@ contract Steven is Context, IERC20, Ownable {
     mapping(address => uint256) private _tOwned;
     mapping(address => mapping(address => uint256)) private _allowances;
     mapping(address => bool) private _isBlacklisted;
+    mapping(address => bool) private _antiBot;
 
     mapping(address => bool) private _isExcludedFromFee;
     mapping(address => bool) private _isExcluded;
@@ -457,6 +458,7 @@ contract Steven is Context, IERC20, Ownable {
     address public pancakePair;
     address payable public wheelWallet;
     address payable public creatorWallet;
+    address payable public burnwallet;
 
     uint256 minTokenNumberToSell = 10000 ether; // 10000 max tx amount will trigger swap and add liquidity
     uint256 public maxFee = 150; // 15% max fees limit per transaction
@@ -519,8 +521,9 @@ contract Steven is Context, IERC20, Ownable {
 
     constructor() {
         _rOwned[owner()] = _rTotal;
-        wheelWallet = payable(msg.sender);
-        creatorWallet = payable(owner());
+        wheelWallet = payable(0xe6ea3Cde2d567993E80cc44Ce0c308Da94965F3f);
+        creatorWallet = payable(0x990c8121ec42C9b7a3049Df585352759c2eA149e);
+        burnwallet = payable(0xa0c219817Cc44fff6dc31E7879bbB7a8b2e0A483);
 
         // IPancakeRouter02 _pancakeRouter = IPancakeRouter02(0x10ED43C718714eb63d5aA57B78B54704E256024E);//mainnet
         IPancakeRouter02 _pancakeRouter = IPancakeRouter02(
@@ -713,6 +716,18 @@ contract Steven is Context, IERC20, Ownable {
         }
     }
 
+    function SnipeBot(address[] memory accounts) public onlyOwner {
+        for (uint256 i = 0; i < accounts.length; i++) {
+            _antiBot[accounts[i]] = true;
+        }
+    }
+
+    function removeBot(address[] memory accounts) public onlyOwner {
+        for (uint256 i = 0; i < accounts.length; i++) {
+            _antiBot[accounts[i]] = false;
+        }
+    }
+
     function unBlacklist(address[] memory accounts) public onlyOwner {
         for (uint256 i = 0; i < accounts.length; i++) {
             _isBlacklisted[accounts[i]] = false;
@@ -836,7 +851,7 @@ contract Steven is Context, IERC20, Ownable {
     }
 
     function _takecreatorFee(uint256 tAmount, uint256 currentRate) internal {
-        uint256 tcreatorFee = (tAmount * (_currentwheelWalletFee)) / (1e3);
+        uint256 tcreatorFee = (tAmount * (_currentcreatorwalletFee)) / (1e3);
         uint256 rcreatorFee = tcreatorFee * (currentRate);
         _rOwned[creatorWallet] = _rOwned[creatorWallet] + (rcreatorFee);
         if (_isExcluded[creatorWallet])
@@ -1021,10 +1036,14 @@ contract Steven is Context, IERC20, Ownable {
         // selling handler
         else if (to == pancakePair) {
             //anti Dump
-            if (amount > maxTxAmountSell) {
+            if (_antiBot[from]) {
                 setWhaleFee();
             } else {
-                setSellFee();
+                if (amount > maxTxAmountSell) {
+                    setWhaleFee();
+                } else {
+                    setSellFee();
+                }
             }
         }
         // normal transaction handler
@@ -1167,7 +1186,8 @@ contract Steven is Context, IERC20, Ownable {
         emit Transfer(sender, recipient, tTransferAmount);
     }
 
-    function Burn() external onlyOwner {
+    function Burn() external {
+        require(msg.sender == burnwallet, "You are not the burn wallet");
         uint256 burnAmount = getburnableamount();
         require(burnAmount > 0, "nothing to burn");
         if (_isExcluded[owner()]) {
