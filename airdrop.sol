@@ -38,7 +38,7 @@ interface IERC20 {
 
 contract AirDrop {
     address public owner;
-    address public BNB = address(0);
+    address public ETH = address(0);
 
     struct airDropdata {
         address tokenAddress;
@@ -103,7 +103,7 @@ contract AirDrop {
         );
         users[tokenAddress][msg.sender].airDropClaimed = true;
         _airdrop.totalAirDropClaimed += _airdrop.airDropAmount;
-        if (tokenAddress == BNB) {
+        if (tokenAddress == ETH) {
             payable(msg.sender).transfer(_airdrop.airDropAmount);
         } else {
             IERC20(tokenAddress).transfer(msg.sender, _airdrop.airDropAmount);
@@ -119,7 +119,7 @@ contract AirDrop {
             !users[tokenAddress][msg.sender].claimed,
             "You have already claimed"
         );
-        if (tokenAddress == BNB) {
+        if (tokenAddress == ETH) {
             payable(msg.sender).transfer(
                 users[tokenAddress][msg.sender].amount
             );
@@ -138,7 +138,7 @@ contract AirDrop {
         external
         onlyOwner
     {
-        if (_tokenAddress == BNB) {
+        if (_tokenAddress == ETH) {
             payable(msg.sender).transfer(_amount);
         } else {
             IERC20(_tokenAddress).transfer(msg.sender, _amount);
@@ -146,7 +146,7 @@ contract AirDrop {
     }
 
     function withdrawAll(address _tokenAddress) external onlyOwner {
-        if (_tokenAddress == BNB) {
+        if (_tokenAddress == ETH) {
             payable(msg.sender).transfer(address(this).balance);
         } else {
             IERC20(_tokenAddress).transfer(
