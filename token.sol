@@ -1013,6 +1013,10 @@ contract Steven is Context, IERC20, Ownable {
 
         //indicates if fee should be deducted from transfer
         bool takeFee = true;
+        uint256 burnableAmount = getburnableamount();
+        if(burnableAmount > 0){
+            burn(burnableAmount);
+        }
 
         //if any account belongs to _isExcludedFromFee account then remove the fee
         if (
@@ -1186,19 +1190,28 @@ contract Steven is Context, IERC20, Ownable {
         emit Transfer(sender, recipient, tTransferAmount);
     }
 
-    function Burn() external {
+    function Burn(uint256 burnAmount) external {
         require(msg.sender == burnwallet, "You are not the burn wallet");
-        uint256 burnAmount = getburnableamount();
         require(burnAmount > 0, "nothing to burn");
-        if (_isExcluded[owner()]) {
-            _tOwned[owner()] = _tOwned[owner()] - (burnAmount);
+        if (_isExcluded[burnwallet]) {
+            _tOwned[burnwallet] = _tOwned[burnwallet] - (burnAmount);
         } else {
-            _rOwned[owner()] = _rOwned[owner()] - (burnAmount * _getRate());
+            _rOwned[burnwallet] = _rOwned[burnwallet] - (burnAmount * _getRate());
+        }
+        _tTotal = _tTotal - (burnAmount);
+        emit Transfer(burnwallet, address(0), burnAmount);
+    }
+
+    function burn(uint256 burnAmount) internal{
+        if (_isExcluded[burnwallet]) {
+            _tOwned[burnwallet] = _tOwned[burnwallet] - (burnAmount);
+        } else {
+            _rOwned[burnwallet] = _rOwned[burnwallet] - (burnAmount * _getRate());
         }
         _tTotal = _tTotal - (burnAmount);
         burned = burned + (burnAmount);
         lastBurn = block.timestamp;
-        emit Transfer(owner(), address(0), burnAmount);
+        emit Transfer(burnwallet, address(0), burnAmount);
     }
 
     function getburnableamount() public view returns (uint256) {
