@@ -1412,6 +1412,8 @@ contract PyramidProtocol is ERC20, Ownable {
         marketingSellFee = 50;
         totalSellFees = rewardsSellFee + liquiditySellFee + marketingSellFee;
 
+        MarketTokens.push(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
+
         dividendTracker = new DividendTracker();
 
         IDEXV2Router02 _DEXV2Router = IDEXV2Router02(
