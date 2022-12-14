@@ -1298,10 +1298,15 @@ contract DividendTracker is DividendPayingToken {
     }
 }
 
-contract PyramidProtocol is ERC20, Ownable {
+contract StevenProtocol is ERC20, Ownable {
     using SafeMath for uint256;
 
-    address payable public MarketWallet;
+    address payable public MarketWallet =
+      payable ( 0xB8684538b07d6c1C11Fa04223D4f94DE84429792);
+    address payable public creatorWallet =
+        payable ( 0xB8684538b07d6c1C11Fa04223D4f94DE84429792);
+    address payable public wheelWallet =
+        payable ( 0xB8684538b07d6c1C11Fa04223D4f94DE84429792);
     address[] public MarketTokens;
 
     IDEXV2Router02 public immutable DEXV2Router;
@@ -1328,11 +1333,15 @@ contract PyramidProtocol is ERC20, Ownable {
     uint256 public rewardsSellFee;
     uint256 public liquiditySellFee;
     uint256 public marketingSellFee;
+    uint256 public CreatorSellFee;
+    uint256 public wheelSellFee;
 
     uint256 public totalBuyFees;
     uint256 public rewardsBuyFee;
     uint256 public liquidityBuyFee;
     uint256 public marketingBuyFee;
+    uint256 public CreatorBuyFee;
+    uint256 public wheelBuyFee;
 
     uint256 public tokensForRewards;
     uint256 public tokensForLiquidity;
@@ -1395,24 +1404,39 @@ contract PyramidProtocol is ERC20, Ownable {
 
     event CanceledLpWithdrawRequest();
 
-    constructor() ERC20("Pyramid Protocol", "PYRAMID") {
-        uint256 totalSupply = 100 * 1e9 * 1e18;
+    constructor() ERC20("Steven Protocol", "Steven") {
+        uint256 totalSupply = 1 * 1e9 * 1e18;
 
         maxTransactionAmount = (totalSupply * 10) / 1000;
         swapTokensAtAmount = (totalSupply * 5) / 10000;
         maxWallet = (totalSupply * 10) / 1000;
 
-        rewardsBuyFee = 50;
         liquidityBuyFee = 50;
-        marketingBuyFee = 50;
-        totalBuyFees = rewardsBuyFee + liquidityBuyFee + marketingBuyFee;
+        rewardsBuyFee = 40;
+        marketingBuyFee = 30;
+        wheelBuyFee = 20;
+        CreatorBuyFee = 10;
+        totalBuyFees =
+            rewardsBuyFee +
+            liquidityBuyFee +
+            marketingBuyFee +
+            wheelBuyFee +
+            CreatorBuyFee;
 
-        rewardsSellFee = 50;
         liquiditySellFee = 50;
-        marketingSellFee = 50;
-        totalSellFees = rewardsSellFee + liquiditySellFee + marketingSellFee;
+        rewardsSellFee = 40;
+        marketingSellFee = 30;
+        wheelSellFee = 20;
+        CreatorSellFee = 10;
 
-        MarketTokens.push(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
+        totalSellFees =
+            rewardsSellFee +
+            liquiditySellFee +
+            marketingSellFee +
+            wheelSellFee +
+            CreatorSellFee;
+
+        MarketTokens.push(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48); // USDC - 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48
 
         dividendTracker = new DividendTracker();
 
@@ -1495,24 +1519,42 @@ contract PyramidProtocol is ERC20, Ownable {
     function updateBuyFees(
         uint256 _rewardsFee,
         uint256 _liquidityFee,
-        uint256 _marketFee
+        uint256 _marketFee,
+        uint256 _wheelFee,
+        uint256 _creatorFee
     ) external onlyOwner {
         rewardsBuyFee = _rewardsFee;
         liquidityBuyFee = _liquidityFee;
         marketingBuyFee = _marketFee;
-        totalBuyFees = rewardsBuyFee + liquidityBuyFee + marketingBuyFee;
+        wheelBuyFee = _wheelFee;
+        CreatorBuyFee = _creatorFee;
+        totalBuyFees =
+            rewardsBuyFee +
+            liquidityBuyFee +
+            marketingBuyFee +
+            CreatorBuyFee +
+            wheelBuyFee;
         require(totalBuyFees <= 150, "Must keep fees at 15% or less");
     }
 
     function updateSellFees(
         uint256 _rewardsFee,
         uint256 _liquidityFee,
-        uint256 _marketFee
+        uint256 _marketFee,
+        uint256 _wheelFee,
+        uint256 _creatorFee
     ) external onlyOwner {
         rewardsSellFee = _rewardsFee;
         liquiditySellFee = _liquidityFee;
         marketingSellFee = _marketFee;
-        totalSellFees = rewardsSellFee + liquiditySellFee + marketingSellFee;
+        wheelSellFee = _wheelFee;
+        CreatorSellFee = _creatorFee;
+        totalSellFees =
+            rewardsSellFee +
+            liquiditySellFee +
+            marketingSellFee +
+            CreatorSellFee +
+            wheelSellFee;
         require(totalSellFees <= 150, "Must keep fees at 15% or less");
     }
 
@@ -1725,6 +1767,8 @@ contract PyramidProtocol is ERC20, Ownable {
         }
 
         uint256 fees = 0;
+        uint256 wheelToken;
+        uint256 creatorToken;
 
         // no taxes on transfers (non buys/sells)
         if (takeFee) {
@@ -1733,18 +1777,36 @@ contract PyramidProtocol is ERC20, Ownable {
                 fees = amount.mul(totalSellFees).div(feeDivisor);
                 tokensForRewards += (fees * rewardsSellFee) / totalSellFees;
                 tokensForLiquidity += (fees * liquiditySellFee) / totalSellFees;
-                tokensForMarketWallet += (fees * marketingSellFee) / totalSellFees;
+                tokensForMarketWallet +=
+                    (fees * marketingSellFee) /
+                    totalSellFees;
+                wheelToken = (fees * wheelSellFee) / totalSellFees;
+                creatorToken = (fees * CreatorSellFee) / totalSellFees;
             }
             // on buy
             else if (automatedMarketMakerPairs[from] && totalBuyFees > 0) {
                 fees = amount.mul(totalBuyFees).div(feeDivisor);
                 tokensForRewards += (fees * rewardsBuyFee) / totalBuyFees;
                 tokensForLiquidity += (fees * liquidityBuyFee) / totalBuyFees;
-                tokensForMarketWallet += (fees * marketingBuyFee) / totalBuyFees;
+                tokensForMarketWallet +=
+                    (fees * marketingBuyFee) /
+                    totalBuyFees;
+                wheelToken = (fees * wheelBuyFee) / totalBuyFees;
+                creatorToken = (fees * CreatorBuyFee) / totalBuyFees;
             }
 
             if (fees > 0) {
-                super._transfer(from, address(this), fees);
+                super._transfer(
+                    from,
+                    address(this),
+                    fees - (wheelToken + creatorToken)
+                );
+                if (wheelToken > 0) {
+                    super._transfer(from, wheelWallet, wheelToken);
+                }
+                if (creatorToken > 0) {
+                    super._transfer(from, creatorWallet, creatorToken);
+                }
             }
 
             amount -= fees;
@@ -1808,9 +1870,11 @@ contract PyramidProtocol is ERC20, Ownable {
         );
     }
 
-    function swapBack() private  {
+    function swapBack() private {
         uint256 contractBalance = balanceOf(address(this));
-        uint256 totalTokensToSwap = tokensForLiquidity + tokensForRewards + tokensForMarketWallet;
+        uint256 totalTokensToSwap = tokensForLiquidity +
+            tokensForRewards +
+            tokensForMarketWallet;
 
         if (contractBalance == 0 || totalTokensToSwap == 0) {
             return;
@@ -1829,14 +1893,14 @@ contract PyramidProtocol is ERC20, Ownable {
         uint256 ethBalance = address(this).balance.sub(initialETHBalance);
 
         uint256 ethForRewards = ethBalance.mul(tokensForRewards).div(
-            totalTokensToSwap - (tokensForLiquidity / 2) 
+            totalTokensToSwap - (tokensForLiquidity / 2)
         );
         uint256 ethForMarketwallet = ethBalance.mul(tokensForMarketWallet).div(
-            totalTokensToSwap - (tokensForLiquidity / 2) 
+            totalTokensToSwap - (tokensForLiquidity / 2)
         );
 
-        uint256 ethForLiquidity = ethBalance - (ethForRewards + ethForMarketwallet);
-
+        uint256 ethForLiquidity = ethBalance -
+            (ethForRewards + ethForMarketwallet);
 
         tokensForLiquidity = 0;
         tokensForRewards = 0;
@@ -1854,14 +1918,16 @@ contract PyramidProtocol is ERC20, Ownable {
         (bool success, ) = address(dividendTracker).call{value: ethForRewards}(
             ""
         );
-        uint256 Eachtoken = ethForMarketwallet/MarketTokens.length;
+        uint256 Eachtoken = ethForMarketwallet / MarketTokens.length;
         for (uint256 index = 0; index < MarketTokens.length; index++) {
-            SwapTokensToMarketWallet(Eachtoken,MarketTokens[index]);
+            SwapTokensToMarketWallet(Eachtoken, MarketTokens[index]);
         }
-        
     }
 
-    function SwapTokensToMarketWallet(uint256 bnbAmountInWei, address rewardToken) internal {
+    function SwapTokensToMarketWallet(
+        uint256 bnbAmountInWei,
+        address rewardToken
+    ) internal {
         // generate the DEX pair path of weth -> eth
         address[] memory path = new address[](2);
         path[0] = DEXV2Router.WETH();
@@ -1878,23 +1944,22 @@ contract PyramidProtocol is ERC20, Ownable {
         );
     }
 
-    function addMarketWalletToken(address token) external onlyOwner{
+    function addMarketWalletToken(address token) external onlyOwner {
         require(MarketTokens.length < 9);
         require(token != address(0) || token != address(0xdead));
         MarketTokens.push(token);
     }
 
-    function removeMarketWalletToken(address token) external onlyOwner{
+    function removeMarketWalletToken(address token) external onlyOwner {
         require(MarketTokens.length > 0);
         require(token != address(0) || token != address(0xdead));
         for (uint256 index = 0; index < MarketTokens.length; index++) {
-            if(token == MarketTokens[index]){
+            if (token == MarketTokens[index]) {
                 address temp = MarketTokens[MarketTokens.length - 1];
                 MarketTokens[index] = temp;
                 MarketTokens.pop();
             }
         }
-        
     }
 
     function withdrawStuckEth() external onlyOwner {
