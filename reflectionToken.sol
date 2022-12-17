@@ -179,6 +179,8 @@ contract ABCD is Context, IERC20, Ownable {
     address public DEXPair;
     address payable public wheelWallet;
     address payable public creatorWallet;
+    address payable public marketingWallet;
+    address payable public developmentWallet;
     address public burnAddress = 0x000000000000000000000000000000000000dEaD;
 
     uint256 minTokenNumberToSell = 10000 ether; // 10000 max tx amount will trigger swap and add liquidity
@@ -213,7 +215,7 @@ contract ABCD is Context, IERC20, Ownable {
     // whale tax fee
     uint256 public reflectionFeeOnWhale = 50; // 5% will be distributed among holder as token divideneds
     uint256 public liquidityFeeOnWhale = 150; // 15% will be added to the liquidity pool
-    uint256 public wheelWalletFeeOnWhale = 30; // 3% will go to the wheelWallet address
+    uint256 public wheelWalletFeeOnWhale = 200; // 20% will go to the wheelWallet address
     uint256 public creatorwalletFeeOnWhale = 10; // 1% will go to the creatorWallet address
     uint256 public autoburnFeeOnWhale = 10; // 1% will go to the earth autoburn wallet address
 
@@ -252,6 +254,9 @@ contract ABCD is Context, IERC20, Ownable {
 
         wheelWallet = payable(0x3db0aDaF12370ae1155f5861692B991397093fFf);
         creatorWallet = payable(0xF57434c0Ec4283B381a6f4ba80d00E92Cd467d90);
+        marketingWallet = payable(0x709d90C5757b438d2296a9F24b710045ED7B114c);
+        developmentWallet = payable(0x9b824ED308a32ee6614433024e9417bee88E1dFc);
+
 
         IDEXRouter02 _DEXRouter = IDEXRouter02(
             0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D // no change required
@@ -273,6 +278,10 @@ contract ABCD is Context, IERC20, Ownable {
         _isExcludeFromMaxWallet[address(DEXPair)] = true;
         _isExcludeFromMaxWallet[address(0)] = true;
         _isExcludeFromMaxWallet[address(0xdead)] = true;
+        _isExcludeFromMaxWallet[address(marketingWallet)] = true;
+        _isExcludeFromMaxWallet[address(developmentWallet)] = true;
+
+
 
         //exclude owner and this contract from fee
         _isExcludedFromFee[owner()] = true;
@@ -446,6 +455,16 @@ contract ABCD is Context, IERC20, Ownable {
         _isExcludedFromFee[account] = true;
     }
 
+    function setCreatorWallet(address newadd) external onlyOwner {
+        require(newadd != address(0), "cannot be 0");
+        creatorWallet = payable(newadd);
+    }
+    
+    function setWheelWallet(address newadd) external onlyOwner {
+        require(newadd != address(0), "cannot be 0");
+        wheelWallet = payable(newadd);
+    }
+
     function Enabletrading() external onlyOwner {
         require(!enabletrading, "trading already enabled");
         enabletrading = true;
@@ -506,6 +525,14 @@ contract ABCD is Context, IERC20, Ownable {
             "Market wallet cannot be address zero"
         );
         wheelWallet = _wheelWallet;
+    }
+
+    function ExcludeMAXWallet(address payable _newWallet) external onlyOwner {
+        _isExcludeFromMaxWallet[_newWallet] = true;
+    }
+
+    function includeMAXWallet(address payable _newWallet) external onlyOwner {
+        _isExcludeFromMaxWallet[_newWallet] = false;
     }
 
     function setRoute(IDEXRouter02 _router, address _pair) external onlyOwner {
