@@ -4,41 +4,19 @@ pragma experimental ABIEncoderV2;
 // SPDX-License-Identifier: MIT
 
 interface IERC20 {
-    function totalSupply() external view returns (uint256);
-
     function balanceOf(address account) external view returns (uint256);
-
-    function decimals() external pure returns (uint8);
 
     function transfer(address recipient, uint256 amount)
         external
         returns (bool);
 
-    function allowance(address owner, address spender)
-        external
-        view
-        returns (uint256);
-
-    function approve(address spender, uint256 amount) external returns (bool);
-
-    function transferFrom(
-        address sender,
-        address recipient,
-        uint256 amount
-    ) external returns (bool);
-
     event Transfer(address indexed from, address indexed to, uint256 value);
-
-    event Approval(
-        address indexed owner,
-        address indexed spender,
-        uint256 value
-    );
 }
 
 contract AirDrop {
     address public owner;
     address public ETH = address(0);
+    address[] ListedToken; //for web3 use
 
     struct airDropdata {
         address tokenAddress;
@@ -63,6 +41,7 @@ contract AirDrop {
 
     constructor() {
         owner = msg.sender;
+        ListedToken.push(ETH);
     }
 
     receive() external payable {}
@@ -89,7 +68,7 @@ contract AirDrop {
         }
     }
 
-    function publicAirDrop(address tokenAddress) public {
+    function claimPublicAirDrop(address tokenAddress) public {
         airDropdata storage _airdrop = airDrop[tokenAddress];
         require(
             !users[tokenAddress][msg.sender].airDropClaimed,
@@ -110,7 +89,7 @@ contract AirDrop {
         }
     }
 
-    function claim(address tokenAddress) public {
+    function claimPrivateAirDrop(address tokenAddress) public {
         require(
             users[tokenAddress][msg.sender].isWhitelisted,
             "You are not whitelisted"
@@ -143,6 +122,24 @@ contract AirDrop {
         } else {
             IERC20(_tokenAddress).transfer(msg.sender, _amount);
         }
+    }
+
+    function alreadyExists(address token) public view returns (bool) {
+        for (uint256 index = 0; index < ListedToken.length; index++) {
+            if (ListedToken[index] == token) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function listToken(address token) external onlyOwner {
+        require(!alreadyExists(token), "Already Listed");
+        ListedToken.push(token);
+    }
+
+    function ListedTokens() external view returns (address[] memory) {
+        return ListedToken;
     }
 
     function withdrawAll(address _tokenAddress) external onlyOwner {

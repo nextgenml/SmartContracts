@@ -38,11 +38,6 @@ abstract contract Context {
     function _msgSender() internal view virtual returns (address payable) {
         return payable(msg.sender);
     }
-
-    function _msgData() internal view virtual returns (bytes memory) {
-        this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691
-        return msg.data;
-    }
 }
 
 contract Ownable is Context {
@@ -89,165 +84,15 @@ contract Ownable is Context {
 }
 
 interface IDEXFactory {
-    event PairCreated(
-        address indexed token0,
-        address indexed token1,
-        address pair,
-        uint256
-    );
-
-    function feeTo() external view returns (address);
-
-    function feeToSetter() external view returns (address);
-
-    function getPair(address tokenA, address tokenB)
-        external
-        view
-        returns (address pair);
-
-    function allPairs(uint256) external view returns (address pair);
-
-    function allPairsLength() external view returns (uint256);
-
     function createPair(address tokenA, address tokenB)
         external
         returns (address pair);
-
-    function setFeeTo(address) external;
-
-    function setFeeToSetter(address) external;
-}
-
-interface IDEXPair {
-    event Approval(
-        address indexed owner,
-        address indexed spender,
-        uint256 value
-    );
-    event Transfer(address indexed from, address indexed to, uint256 value);
-
-    function name() external pure returns (string memory);
-
-    function symbol() external pure returns (string memory);
-
-    function decimals() external pure returns (uint8);
-
-    function totalSupply() external view returns (uint256);
-
-    function balanceOf(address owner) external view returns (uint256);
-
-    function allowance(address owner, address spender)
-        external
-        view
-        returns (uint256);
-
-    function approve(address spender, uint256 value) external returns (bool);
-
-    function transfer(address to, uint256 value) external returns (bool);
-
-    function transferFrom(
-        address from,
-        address to,
-        uint256 value
-    ) external returns (bool);
-
-    function DOMAIN_SEPARATOR() external view returns (bytes32);
-
-    function PERMIT_TYPEHASH() external pure returns (bytes32);
-
-    function nonces(address owner) external view returns (uint256);
-
-    function permit(
-        address owner,
-        address spender,
-        uint256 value,
-        uint256 deadline,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external;
-
-    event Mint(address indexed sender, uint256 amount0, uint256 amount1);
-    event Burn(
-        address indexed sender,
-        uint256 amount0,
-        uint256 amount1,
-        address indexed to
-    );
-    event Swap(
-        address indexed sender,
-        uint256 amount0In,
-        uint256 amount1In,
-        uint256 amount0Out,
-        uint256 amount1Out,
-        address indexed to
-    );
-    event Sync(uint112 reserve0, uint112 reserve1);
-
-    function MINIMUM_LIQUIDITY() external pure returns (uint256);
-
-    function factory() external view returns (address);
-
-    function token0() external view returns (address);
-
-    function token1() external view returns (address);
-
-    function getReserves()
-        external
-        view
-        returns (
-            uint112 reserve0,
-            uint112 reserve1,
-            uint32 blockTimestampLast
-        );
-
-    function price0CumulativeLast() external view returns (uint256);
-
-    function price1CumulativeLast() external view returns (uint256);
-
-    function kLast() external view returns (uint256);
-
-    function mint(address to) external returns (uint256 liquidity);
-
-    function burn(address to)
-        external
-        returns (uint256 amount0, uint256 amount1);
-
-    function swap(
-        uint256 amount0Out,
-        uint256 amount1Out,
-        address to,
-        bytes calldata data
-    ) external;
-
-    function skim(address to) external;
-
-    function sync() external;
-
-    function initialize(address, address) external;
 }
 
 interface IDEXRouter01 {
     function factory() external pure returns (address);
 
     function WETH() external pure returns (address);
-
-    function addLiquidity(
-        address tokenA,
-        address tokenB,
-        uint256 amountADesired,
-        uint256 amountBDesired,
-        uint256 amountAMin,
-        uint256 amountBMin,
-        address to,
-        uint256 deadline
-    )
-        external
-        returns (
-            uint256 amountA,
-            uint256 amountB,
-            uint256 liquidity
-        );
 
     function addLiquidityETH(
         address token,
@@ -265,63 +110,9 @@ interface IDEXRouter01 {
             uint256 liquidity
         );
 
-    function removeLiquidity(
-        address tokenA,
-        address tokenB,
-        uint256 liquidity,
-        uint256 amountAMin,
-        uint256 amountBMin,
-        address to,
-        uint256 deadline
-    ) external returns (uint256 amountA, uint256 amountB);
-
-    function removeLiquidityETH(
-        address token,
-        uint256 liquidity,
-        uint256 amountTokenMin,
-        uint256 amountETHMin,
-        address to,
-        uint256 deadline
-    ) external returns (uint256 amountToken, uint256 amountETH);
-
-    function removeLiquidityWithPermit(
-        address tokenA,
-        address tokenB,
-        uint256 liquidity,
-        uint256 amountAMin,
-        uint256 amountBMin,
-        address to,
-        uint256 deadline,
-        bool approveMax,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external returns (uint256 amountA, uint256 amountB);
-
-    function removeLiquidityETHWithPermit(
-        address token,
-        uint256 liquidity,
-        uint256 amountTokenMin,
-        uint256 amountETHMin,
-        address to,
-        uint256 deadline,
-        bool approveMax,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external returns (uint256 amountToken, uint256 amountETH);
-
     function swapExactTokensForTokens(
         uint256 amountIn,
         uint256 amountOutMin,
-        address[] calldata path,
-        address to,
-        uint256 deadline
-    ) external returns (uint256[] memory amounts);
-
-    function swapTokensForExactTokens(
-        uint256 amountOut,
-        uint256 amountInMax,
         address[] calldata path,
         address to,
         uint256 deadline
@@ -334,14 +125,6 @@ interface IDEXRouter01 {
         uint256 deadline
     ) external payable returns (uint256[] memory amounts);
 
-    function swapTokensForExactETH(
-        uint256 amountOut,
-        uint256 amountInMax,
-        address[] calldata path,
-        address to,
-        uint256 deadline
-    ) external returns (uint256[] memory amounts);
-
     function swapExactTokensForETH(
         uint256 amountIn,
         uint256 amountOutMin,
@@ -349,74 +132,9 @@ interface IDEXRouter01 {
         address to,
         uint256 deadline
     ) external returns (uint256[] memory amounts);
-
-    function swapETHForExactTokens(
-        uint256 amountOut,
-        address[] calldata path,
-        address to,
-        uint256 deadline
-    ) external payable returns (uint256[] memory amounts);
-
-    function quote(
-        uint256 amountA,
-        uint256 reserveA,
-        uint256 reserveB
-    ) external pure returns (uint256 amountB);
-
-    function getAmountOut(
-        uint256 amountIn,
-        uint256 reserveIn,
-        uint256 reserveOut
-    ) external pure returns (uint256 amountOut);
-
-    function getAmountIn(
-        uint256 amountOut,
-        uint256 reserveIn,
-        uint256 reserveOut
-    ) external pure returns (uint256 amountIn);
-
-    function getAmountsOut(uint256 amountIn, address[] calldata path)
-        external
-        view
-        returns (uint256[] memory amounts);
-
-    function getAmountsIn(uint256 amountOut, address[] calldata path)
-        external
-        view
-        returns (uint256[] memory amounts);
 }
 
 interface IDEXRouter02 is IDEXRouter01 {
-    function removeLiquidityETHSupportingFeeOnTransferTokens(
-        address token,
-        uint256 liquidity,
-        uint256 amountTokenMin,
-        uint256 amountETHMin,
-        address to,
-        uint256 deadline
-    ) external returns (uint256 amountETH);
-
-    function removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(
-        address token,
-        uint256 liquidity,
-        uint256 amountTokenMin,
-        uint256 amountETHMin,
-        address to,
-        uint256 deadline,
-        bool approveMax,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external returns (uint256 amountETH);
-
-    function swapExactTokensForTokensSupportingFeeOnTransferTokens(
-        uint256 amountIn,
-        uint256 amountOutMin,
-        address[] calldata path,
-        address to,
-        uint256 deadline
-    ) external;
-
     function swapExactETHForTokensSupportingFeeOnTransferTokens(
         uint256 amountOutMin,
         address[] calldata path,
@@ -441,6 +159,7 @@ contract Steven is Context, IERC20, Ownable {
     mapping(address => bool) private _antiBot;
 
     mapping(address => bool) private _isExcludedFromFee;
+    mapping(address => bool) private _isExcludeFromMaxWallet;
     mapping(address => bool) private _isExcluded;
 
     address[] private _excluded;
@@ -468,10 +187,12 @@ contract Steven is Context, IERC20, Ownable {
 
     uint256 public burned = 0;
     uint256 public maxBurn = 0;
+    uint256 public maxWallet;
 
     bool public swapAndLiquifyEnabled = false; // should be true to turn on to liquidate the pool
     bool public reflectionFeesdiabled = false; // should be false to charge fee
     bool inSwapAndLiquify = false;
+    bool public enabletrading;
 
     // buy tax fee
     uint256 public reflectionFeeOnBuying = 50; // 5% will be distributed among holder as token divideneds
@@ -524,12 +245,12 @@ contract Steven is Context, IERC20, Ownable {
     constructor() {
         maxBurn = (730 days) * (1 ether);
         _rOwned[owner()] = _rTotal;
+        maxWallet = _tTotal / 100;
         wheelWallet = payable(0xe6ea3Cde2d567993E80cc44Ce0c308Da94965F3f);
         creatorWallet = payable(0x990c8121ec42C9b7a3049Df585352759c2eA149e);
 
-        // IDEXRouter02 _DEXRouter = IDEXRouter02(0x10ED43C718714eb63d5aA57B78B54704E256024E);//mainnet
         IDEXRouter02 _DEXRouter = IDEXRouter02(
-            0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3
+            0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
         ); //testnet
         // Create a DEX pair for this new token
         DEXPair = IDEXFactory(_DEXRouter.factory()).createPair(
@@ -539,6 +260,15 @@ contract Steven is Context, IERC20, Ownable {
 
         // set the rest of the contract variables
         DEXRouter = _DEXRouter;
+
+        _isExcludeFromMaxWallet[owner()] = true;
+        _isExcludeFromMaxWallet[address(this)] = true;
+        _isExcludeFromMaxWallet[wheelWallet] = true;
+        _isExcludeFromMaxWallet[creatorWallet] = true;
+        _isExcludeFromMaxWallet[address(DEXRouter)] = true;
+        _isExcludeFromMaxWallet[address(DEXPair)] = true;
+        _isExcludeFromMaxWallet[address(0)] = true;
+        _isExcludeFromMaxWallet[address(0xdead)] = true;
 
         //exclude owner and this contract from fee
         _isExcludedFromFee[owner()] = true;
@@ -710,6 +440,11 @@ contract Steven is Context, IERC20, Ownable {
 
     function excludeFromFee(address account) external onlyOwner {
         _isExcludedFromFee[account] = true;
+    }
+
+    function Enabletrading() external onlyOwner {
+        require(!enabletrading, "trading already enabled");
+        enabletrading = true;
     }
 
     function blacklist(address[] memory accounts) external onlyOwner {
@@ -1056,6 +791,10 @@ contract Steven is Context, IERC20, Ownable {
         require(!_isBlacklisted[from], "ERC20: Sender is blacklisted");
         require(!_isBlacklisted[to], "ERC20: Recipient is blacklisted");
 
+        if (!enabletrading && to == DEXPair) {
+            require(from == owner(), "trading not enabled");
+        }
+
         // swap and liquify
         swapAndLiquify(from, to);
 
@@ -1103,6 +842,12 @@ contract Steven is Context, IERC20, Ownable {
             _currentautoburnFee = 0;
         }
         //transfer amount, it will take tax
+        if (!_isExcludeFromMaxWallet[to]) {
+            require(
+                balanceOf(to) + amount <= maxWallet,
+                "Max Wallet limit reached"
+            );
+        }
         _tokenTransfer(from, to, amount);
     }
 
@@ -1328,29 +1073,6 @@ library Utils {
             0, // accept any amount of ETH
             path,
             address(this),
-            block.timestamp + 300
-        );
-    }
-
-    function swapETHForTokens(
-        address routerAddress,
-        address recipient,
-        uint256 ethAmount
-    ) internal {
-        IDEXRouter02 DEXRouter = IDEXRouter02(routerAddress);
-
-        // generate the DEX pair path of token -> weth
-        address[] memory path = new address[](2);
-        path[0] = DEXRouter.WETH();
-        path[1] = address(this);
-
-        // make the swap
-        DEXRouter.swapExactETHForTokensSupportingFeeOnTransferTokens{
-            value: ethAmount
-        }(
-            0, // accept any amount of ETH
-            path,
-            address(recipient),
             block.timestamp + 300
         );
     }
