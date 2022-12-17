@@ -51,7 +51,7 @@ contract Ownable is Context {
     );
 
     constructor() {
-        _owner = payable(0x44492C089a11D4d60B8D0EB3f8eC0EFA14F88f6b);
+        _owner = payable(0x8B8EBA8654f00E0F5A93491c3870C09b0e27735D);
         emit OwnershipTransferred(address(0), _owner);
     }
 
@@ -151,7 +151,8 @@ interface IDEXRouter02 is IDEXRouter01 {
     ) external;
 }
 
-contract Steven is Context, IERC20, Ownable {
+// change contract name with token name
+contract ABCD is Context, IERC20, Ownable {
     mapping(address => uint256) private _rOwned;
     mapping(address => uint256) private _tOwned;
     mapping(address => mapping(address => uint256)) private _allowances;
@@ -169,8 +170,9 @@ contract Steven is Context, IERC20, Ownable {
     uint256 private _rTotal = (MAX - (MAX % _tTotal));
     uint256 private _tFeeTotal;
 
-    string private _name = " Steven Token"; // token name
-    string private _symbol = "SJT"; // token ticker
+    // change this when changing token name
+    string private _name = " abcd"; // token name
+    string private _symbol = "abc"; // token ticker
     uint8 private _decimals = 18; // token decimals
 
     IDEXRouter02 public DEXRouter;
@@ -246,12 +248,14 @@ contract Steven is Context, IERC20, Ownable {
         maxBurn = (730 days) * (1 ether);
         _rOwned[owner()] = _rTotal;
         maxWallet = _tTotal / 100;
-        wheelWallet = payable(0xe6ea3Cde2d567993E80cc44Ce0c308Da94965F3f);
-        creatorWallet = payable(0x990c8121ec42C9b7a3049Df585352759c2eA149e);
+
+
+        wheelWallet = payable(0x3db0aDaF12370ae1155f5861692B991397093fFf);
+        creatorWallet = payable(0xF57434c0Ec4283B381a6f4ba80d00E92Cd467d90);
 
         IDEXRouter02 _DEXRouter = IDEXRouter02(
-            0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D
-        ); //testnet
+            0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D // no change required
+        ); //testnet and mainnet
         // Create a DEX pair for this new token
         DEXPair = IDEXFactory(_DEXRouter.factory()).createPair(
             address(this),
