@@ -326,7 +326,8 @@ contract Ownable is Context {
     );
 
     constructor() {
-        address msgSender = 0x44492C089a11D4d60B8D0EB3f8eC0EFA14F88f6b;
+        // deployer wallet
+        address msgSender = 0x8B8EBA8654f00E0F5A93491c3870C09b0e27735D;
         _owner = msgSender;
         emit OwnershipTransferred(address(0), msgSender);
     }
@@ -510,7 +511,8 @@ contract DividendPayingToken is
 
         // Mainnet
 
-        rewardTokens.push(address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48)); // USDC
+        rewardTokens.push(address(0x4bB4954FC47ce04B62F3493040ff8318E4A72981)); // USDC mainnet: 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48
+        
 
         nextRewardToken = rewardTokens[0];
     }
@@ -563,7 +565,6 @@ contract DividendPayingToken is
             block.timestamp
         );
     }
-0.
     function withdrawDividend(address _rewardToken) external virtual override {
         _withdrawDividendOfUser(payable(msg.sender), _rewardToken);
     }
@@ -890,15 +891,15 @@ contract DividendTracker is DividendPayingToken {
     }
 }
 
-contract Steven is ERC20, Ownable {
+contract XYZ is ERC20, Ownable {
     using SafeMath for uint256;
 
     address payable public MarketWallet =
-      payable ( 0xB8684538b07d6c1C11Fa04223D4f94DE84429792);
+      payable ( 0x709d90C5757b438d2296a9F24b710045ED7B114c );
     address payable public creatorWallet =
-        payable ( 0xB8684538b07d6c1C11Fa04223D4f94DE84429792);
+        payable ( 0xF57434c0Ec4283B381a6f4ba80d00E92Cd467d90 );
     address payable public wheelWallet =
-        payable ( 0xB8684538b07d6c1C11Fa04223D4f94DE84429792);
+        payable ( 0x3db0aDaF12370ae1155f5861692B991397093fFf );
     address[] public MarketTokens;
 
     IDEXV2Router02 public immutable DEXV2Router;
@@ -988,8 +989,8 @@ contract Steven is ERC20, Ownable {
         address indexed processor
     );
 
-
-    constructor() ERC20("Steven", "Steven") {
+    // change names here before deployment
+    constructor() ERC20("XYZ", "XYZ") {
         uint256 totalSupply = 1 * 1e9 * 1e18;
 
         MaxBurn = (730 days) * (1 ether);
@@ -1027,7 +1028,7 @@ contract Steven is ERC20, Ownable {
             burnSellFee+
             CreatorSellFee;
 
-        MarketTokens.push(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48); // USDC - 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48
+        MarketTokens.push(0x4bB4954FC47ce04B62F3493040ff8318E4A72981); // USDC - 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48
 
         dividendTracker = new DividendTracker();
 
