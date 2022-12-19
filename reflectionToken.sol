@@ -632,7 +632,7 @@ contract ABCD is Context, IERC20, Ownable {
         if (_isExcluded[burnAddress]) {
             _tOwned[burnAddress] = _tOwned[burnAddress] + (burnFee);
         }
-        burned = burned + tAmount;
+        burned = burned + burnFee;
         emit Transfer(_msgSender(), burnAddress, burnFee);
     }
 
